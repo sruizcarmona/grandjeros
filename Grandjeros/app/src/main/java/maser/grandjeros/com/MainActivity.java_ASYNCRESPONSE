@@ -1,0 +1,201 @@
+package maser.grandjeros.com;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Scanner;
+import java.io.InputStream;
+import java.net.URLConnection;
+import java.io.StringReader;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+
+import android.app.Activity;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+
+
+public class MainActivity extends Activity implements AsyncResponse{
+    MyWebContentTask jeroURL = new MyWebContentTask();
+    /** Called when the activity is first created. */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //GetSourceCode();
+        //get string from url
+        String lm2="kk";
+        //check
+        TextView tv = (TextView) findViewById(R.id.textView1);
+        tv.setText(lm2);
+//        MyWebContentTask jeroURL = new MyWebContentTask();
+        jeroURL.execute("http://benito49.blogspot.com.es");
+        jeroURL.delegate = this;
+//        String ju = jeroURL.getValue;
+//        TextView tv2 = (TextView) findViewById(R.id.textView3);
+//        tv2.setText((String) ju);
+//        MyWebContentTask mt = new MyWebContentTask();
+//        mt.execute("https://dl.dropboxusercontent.com/u/64144151/kk.html");
+        new DownloadImageTask((ImageView) findViewById(R.id.imageView1)).execute("https://dl.dropboxusercontent.com/u/64144151/jero.png");
+    }
+
+    public void processFinish(Object output){
+        //this you will received result fired from async class of onPostExecute(result) method.
+        TextView tv2 = (TextView) findViewById(R.id.textView3);
+        tv2.setText((String) output);
+
+    }
+
+    public class MyWebContentTask extends AsyncTask {
+        public AsyncResponse delegate=null;
+
+        @Override
+        protected Object doInBackground(Object... params) {
+        //descarrega metar
+            try {
+                URL url = new URL((String) params[0]);
+                Scanner scanner = new Scanner(url.openStream());
+                scanner.nextLine();
+                String line = scanner.nextLine();
+                while (line != null) {
+//                    if (line.contains("data:image")) {
+//                        line = line.substring(line.indexOf(":") + 1);
+//                        line = line.substring(0, line.indexOf(";"));
+//                        return line;
+//                    }
+                    if (line.contains("JEROGL")) {
+                        line = line.substring(line.indexOf("'") + 1);
+                        line = line.substring(0, line.indexOf("'"));
+                        return line;
+                    }
+                    line = scanner.nextLine();
+                }
+//		    	this.publishProgress(50);
+            } catch (Exception e) {
+                Log.e("error webcontenttask", e.toString());
+            }
+            return null;
+        }
+
+        protected void onPostExecute(Object result) {
+            delegate.processFinish(result);
+        }
+//        protected void onPostExecute(Object result) {
+//            TextView tv = (TextView) findViewById(R.id.textView2);
+//            tv.setText((String) result);
+////            myMethod(result);
+//        }
+
+//        private String myMethod(Object str) {
+//            //handle value
+//            return str;
+//        }
+    }
+
+    //get image from url
+    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+        ImageView bmImage;
+
+        public DownloadImageTask(ImageView bmImage) {
+            this.bmImage = bmImage;
+        }
+        protected Bitmap doInBackground(String... urls) {
+            String urldisplay = urls[0];
+            Bitmap mIcon11 = null;
+            try {
+                InputStream in = new java.net.URL(urldisplay).openStream();
+                mIcon11 = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return mIcon11;
+        }
+        protected void onPostExecute(Bitmap result) {
+            bmImage.setImageBitmap(result);
+        }
+    }
+
+
+    public void onClick(View v){
+        //versio senzilla control errors.
+//        GetSolution sol = new GetSolution();
+//        sol.execute(lineMatch);
+        Toast.makeText(this, "Si, convocales", Toast.LENGTH_SHORT).show();
+        return;
+    }
+    private class GetSolution extends AsyncTask {
+        @Override
+        protected Object doInBackground(Object... params) {
+            //descarrega metar
+            try {
+                URL url = new URL((String) params[0]);
+                Scanner scanner = new Scanner(url.openStream());
+                scanner.nextLine();
+                String line = scanner.nextLine();
+                while (line != null) {
+                    if (line.contains("data:image")) {
+                        line = line.substring(line.indexOf(":") + 1);
+                        line = line.substring(0, line.indexOf(";"));
+                        return line;
+                    }
+                    line = scanner.nextLine();
+                }
+//		    	this.publishProgress(50);
+            } catch (Exception e) {
+                Log.e("error webcontenttask", e.toString());
+            }
+            return null;
+        }
+        protected void onPostExecute(Object result) {
+            TextView tv = (TextView) findViewById(R.id.textView2);
+            tv.setText((String) result);
+        }
+    }
+
+
+//    private class MyTask extends AsyncTask {
+//        @Override
+//        protected Object doInBackground(Object... params) {
+//            //descarrega metar
+//            try{
+//                URL url = new URL("http://weather.noaa.gov/" +
+//                        "pub/data/observations/metar/stations/"
+//                        + params[0] + ".TXT");
+//                Scanner scanner = new Scanner (url.openStream());
+//                scanner.nextLine();
+//                String str = scanner.nextLine();
+////		    	this.publishProgress(50);
+//
+//                return str;
+//            } catch (Exception e) {
+//                Log.e("ReadMETAR", e.toString());
+//            }
+//            return null;
+//        }
+////		@Override
+////		protected void onProgressUpdate(Object... values) {
+////			super.onProgressUpdate(values);
+////		}
+//       // @Override
+//        //protected void onPostExecute(Object result) {
+//        //    TextView tv = (TextView) findViewById(R.id.output);
+//        //    tv.setText((String) result);
+//        //}
+//    }
+}
